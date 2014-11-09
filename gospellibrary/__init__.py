@@ -140,7 +140,5 @@ class ItemPackage:
             (html, start_index, end_index) = c.fetchone()
 
             return html[start_index:end_index]
-        except:
-            return None
         finally:
             c.close()
