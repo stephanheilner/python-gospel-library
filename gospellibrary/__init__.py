@@ -133,11 +133,11 @@ class ItemPackage:
     def html(self, uri):
         c = self.db.cursor()
         try:
-            c.execute('''SELECT subitem_id, start_index, end_index FROM subitem_content_range WHERE uri=?''', [uri])
-            (subitem_id, start_index, end_index) = c.fetchone()
-
-            c.execute('''SELECT content FROM subitem_content WHERE subitem_id=?''', [subitem_id])
-            (html,) = c.fetchone()
+            c.execute('''
+                    SELECT content, start_index, end_index FROM subitem_content_range
+                        INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
+                    WHERE uri=?''', [uri])
+            (html, start_index, end_index) = c.fetchone()
 
             return html[start_index:end_index]
         except:
