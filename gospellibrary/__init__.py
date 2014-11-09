@@ -102,7 +102,7 @@ class Item:
             item_version=self.version)
         r = session.get(item_package_zip_url)
         if r.status_code == 200:
-            item_package_path = os.path.join(mkdtemp(), 'Package.sqlite')
+            item_package_path = os.path.join(mkdtemp(), 'package.sqlite')
 
             try:
                 os.makedirs(os.path.dirname(item_package_path))
