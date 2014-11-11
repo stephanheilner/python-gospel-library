@@ -14,13 +14,13 @@ DEFAULT_BASE_URL = 'http://broadcast3.lds.org/crowdsource/mobile/gospelstudy/pro
 SCHEMA_VERSION = '2.0.2'
 
 logger = logging.getLogger('gospellibrary')
-session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'))
 
 
 class Catalog:
-    def __init__(self, base_url=DEFAULT_BASE_URL):
+    def __init__(self, base_url=DEFAULT_BASE_URL, cache_dir='.gospellibrarycache'):
         self.base_url = base_url
         self.schema_version = SCHEMA_VERSION
+        self.session = CacheControl(requests.session(), cache=FileCache(cache_dir))
 
     def __repr__(self):
         return 'Catalog()'
@@ -30,7 +30,7 @@ class Catalog:
 
         index_url = '{base_url}/{schema_version}/index.json'.format(base_url=self.base_url,
                                                                     schema_version=self.schema_version)
-        r = session.get(index_url)
+        r = self.session.get(index_url)
         if r.status_code == 200:
             index = r.json()
             catalog_version = index.get('catalogVersion', 0)
@@ -48,7 +48,7 @@ class Catalog:
             base_url=self.base_url,
             schema_version=self.schema_version,
             catalog_version=catalog_version)
-        r = session.get(catalog_zip_url)
+        r = self.session.get(catalog_zip_url)
         if r.status_code == 200:
             catalog_path = os.path.join(mkdtemp(), 'Catalog.sqlite')
             try:
@@ -64,11 +64,15 @@ class Catalog:
                     c = db.cursor()
                     try:
                         c.execute('''
-                                SELECT external_id, latest_version FROM item
+                                SELECT external_id, latest_version, title FROM item
                                     INNER JOIN language ON item.language_id=language._id
                                 WHERE uri=? AND iso639_3=?''', (uri, lang))
-                        item_external_id, item_version = c.fetchone()
-                        return Item(base_url=self.base_url, item_external_id=item_external_id, version=item_version)
+                        item_external_id, item_version, item_title = c.fetchone()
+                        return Item(base_url=self.base_url,
+                                    session=self.session,
+                                    item_external_id=item_external_id,
+                                    version=item_version,
+                                    title=item_title)
                     finally:
                         c.close()
             finally:
@@ -78,11 +82,13 @@ class Catalog:
 
 
 class Item:
-    def __init__(self, base_url, item_external_id, version):
+    def __init__(self, base_url, session, item_external_id, version, title):
         self.base_url = base_url
         self.schema_version = SCHEMA_VERSION
         self.item_external_id = item_external_id
         self.version = version
+        self.title = title
+        self.session = session
 
     def __repr__(self):
         return 'Item(item_external_id="{item_external_id}", version="{version}")'.format(
@@ -100,7 +106,7 @@ class Item:
             schema_version=self.schema_version,
             item_external_id=self.item_external_id,
             item_version=self.version)
-        r = session.get(item_package_zip_url)
+        r = self.session.get(item_package_zip_url)
         if r.status_code == 200:
             item_package_path = os.path.join(mkdtemp(), 'package.sqlite')
 
@@ -142,3 +148,111 @@ class ItemPackage:
             return html[start_index:end_index]
         finally:
             c.close()
+
+    def subitems(self):
+        c = self.db.cursor()
+        try:
+            return [Subitem(id=row[0], uri=row[1]) for row in c.execute('''SELECT _id, uri FROM subitem ORDER BY position''')]
+        finally:
+            c.close()
+
+    def related_audio_items(self, subitem_id):
+        c = self.db.cursor()
+        try:
+            return [RelatedAudioItem(
+                id=row[0],
+                subitem_id=row[1],
+                media_url=row[2]) for row in
+                    c.execute('''SELECT _id, subitem_id, media_url FROM related_audio_item WHERE subitem_id=?''', [subitem_id])]
+        finally:
+            c.close()
+
+    def related_video_items(self, subitem_id):
+        c = self.db.cursor()
+        try:
+            return [RelatedVideoItem(
+                id=row[0],
+                subitem_id=row[1],
+                media_url=row[2],
+                container_type=row[3]) for row in
+                    c.execute('''SELECT _id, subitem_id, media_url, container_type FROM related_video_item WHERE subitem_id=?''', [subitem_id])]
+        finally:
+            c.close()
+
+
+class Subitem:
+    def __init__(self, id, uri):
+        self.id = id
+        self.uri = uri
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    def __repr__(self):
+        return 'Subitem(id="{id}", uri="{uri}")'.format(
+            id=self.id,
+            uri=self.uri)
+
+
+class RelatedAudioItem:
+    def __init__(self, id, subitem_id, media_url):
+        self.id = id
+        self.subitem_id = subitem_id
+        self.media_url = media_url
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    def __repr__(self):
+        return 'RelatedAudioItem(id="{id}", subitem_id="{subitem_id}", media_url="{media_url}")'.format(
+            id=self.id,
+            subitem_id=self.subitem_id,
+            media_url=self.media_url)
+
+
+class RelatedVideoItem:
+    def __init__(self, id, subitem_id, media_url, container_type):
+        self.id = id
+        self.subitem_id = subitem_id
+        self.media_url = media_url
+        self.container_type = container_type
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
+
+    def __repr__(self):
+        return 'RelatedVideoItem(id="{id}", subitem_id="{subitem_id}", media_url="{media_url}", container_type="{container_type}")'.format(
+            id=self.id,
+            subitem_id=self.subitem_id,
+            media_url=self.media_url,
+            container_type=self.container_type)

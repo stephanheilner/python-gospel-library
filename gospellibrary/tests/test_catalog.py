@@ -1,5 +1,5 @@
 import unittest
-from gospellibrary import Catalog
+from gospellibrary import Catalog, Subitem, RelatedAudioItem, RelatedVideoItem
 import logging
 import bs4
 
@@ -25,3 +25,46 @@ class Test(unittest.TestCase):
             expected = '<p class="verse" uri="/scriptures/bofm/1-ne/11.17"><span class="verseNumber">17</span>And I said unto him: I know that he loveth his children; nevertheless, I do not know the meaning of all things.</p>'
 
             self.assertEqual(actual, expected)
+
+    def test_package_subitems(self):
+        with Catalog().item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng').package() as package:
+            actual = package.subitems()
+
+            expected = [
+                Subitem(
+                    id=1,
+                    uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances')
+            ]
+
+            self.assertEqual(expected, actual)
+
+    def test_package_related_audio_items(self):
+        with Catalog().item(uri='/manual/new-testament-stories', lang='eng').package() as package:
+            subitem_id = 38
+
+            actual = package.related_audio_items(subitem_id)
+
+            expected = [
+                RelatedAudioItem(
+                    id=37,
+                    subitem_id=subitem_id,
+                    media_url='http://media2.ldscdn.org/assets/scripture-and-lesson-support/new-testament-stories/2010-11-370-chapter-36-jesus-tells-three-parables-complete-256k-eng.mp3')
+            ]
+
+            self.assertEqual(expected, actual)
+
+    def test_package_related_video_items(self):
+        with Catalog().item(uri='/manual/new-testament-stories', lang='eng').package() as package:
+            subitem_id = 38
+
+            actual = [related_video_item for related_video_item in package.related_video_items(subitem_id) if related_video_item.container_type == 1]
+
+            expected = [
+                RelatedVideoItem(
+                    id=469,
+                    subitem_id=subitem_id,
+                    media_url='http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?videoId=1288200371001',
+                    container_type=1)
+            ]
+
+            self.assertEqual(expected, actual)
