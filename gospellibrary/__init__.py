@@ -1,6 +1,4 @@
 import requests
-from cachecontrol import CacheControl
-from cachecontrol.caches import FileCache
 import logging
 from StringIO import StringIO
 from zipfile import ZipFile
@@ -17,10 +15,10 @@ logger = logging.getLogger('gospellibrary')
 
 
 class Catalog:
-    def __init__(self, base_url=DEFAULT_BASE_URL, cache_dir='.gospellibrarycache'):
+    def __init__(self, base_url=DEFAULT_BASE_URL, session=None):
         self.base_url = base_url
         self.schema_version = SCHEMA_VERSION
-        self.session = CacheControl(requests.session(), cache=FileCache(cache_dir))
+        self.session = session if session else requests.session()
 
     def __repr__(self):
         return 'Catalog()'

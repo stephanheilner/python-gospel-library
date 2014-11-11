@@ -2,21 +2,27 @@ import unittest
 from gospellibrary import Catalog, Subitem, RelatedAudioItem, RelatedVideoItem
 import logging
 import bs4
+import requests
+from cachecontrol import CacheControl
+from cachecontrol.caches import FileCache
+
 
 logger = logging.getLogger('gospellibrary')
+
+session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'))
 
 
 class Test(unittest.TestCase):
     def test_current_version(self):
-        self.assertGreaterEqual(Catalog().current_version(), 1)
+        self.assertGreaterEqual(Catalog(session=session).current_version(), 1)
 
     def test_item(self):
-        item = Catalog().item(uri='/scriptures/bofm', lang='eng')
+        item = Catalog(session=session).item(uri='/scriptures/bofm', lang='eng')
         self.assertEqual(item.item_external_id, '_scriptures_bofm_000')
         self.assertGreaterEqual(item.version, 1)
 
     def test_package_html(self):
-        with Catalog().item(uri='/scriptures/bofm', lang='eng').package() as package:
+        with Catalog(session=session).item(uri='/scriptures/bofm', lang='eng').package() as package:
             p = bs4.BeautifulSoup(package.html(uri='/scriptures/bofm/1-ne/11.17')).p
             del p['pid']
             del p['hash']
@@ -27,7 +33,7 @@ class Test(unittest.TestCase):
             self.assertEqual(actual, expected)
 
     def test_package_subitems(self):
-        with Catalog().item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng').package() as package:
+        with Catalog(session=session).item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng').package() as package:
             actual = package.subitems()
 
             expected = [
@@ -39,7 +45,7 @@ class Test(unittest.TestCase):
             self.assertEqual(expected, actual)
 
     def test_package_related_audio_items(self):
-        with Catalog().item(uri='/manual/new-testament-stories', lang='eng').package() as package:
+        with Catalog(session=session).item(uri='/manual/new-testament-stories', lang='eng').package() as package:
             subitem_id = 38
 
             actual = package.related_audio_items(subitem_id)
@@ -54,7 +60,7 @@ class Test(unittest.TestCase):
             self.assertEqual(expected, actual)
 
     def test_package_related_video_items(self):
-        with Catalog().item(uri='/manual/new-testament-stories', lang='eng').package() as package:
+        with Catalog(session=session).item(uri='/manual/new-testament-stories', lang='eng').package() as package:
             subitem_id = 38
 
             actual = [related_video_item for related_video_item in package.related_video_items(subitem_id) if related_video_item.container_type == 1]

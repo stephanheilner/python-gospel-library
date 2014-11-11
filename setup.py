@@ -9,8 +9,6 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         'requests==2.4.3',
-        'cachecontrol==0.10.4',
-        'lockfile==0.10.2',
         'pysqlite==2.6.3',
     ],
 )
