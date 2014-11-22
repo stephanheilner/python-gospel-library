@@ -1,5 +1,5 @@
 import unittest
-from gospellibrary import Catalog, Subitem, RelatedAudioItem, RelatedVideoItem
+from gospellibrary import Catalog, Subitem, RelatedAudioItem, RelatedVideoItem, RelatedContentItem
 import logging
 import bs4
 import requests
@@ -20,6 +20,12 @@ class Test(unittest.TestCase):
         item = Catalog(session=session).item(uri='/scriptures/bofm', lang='eng')
         self.assertEqual(item.item_external_id, '_scriptures_bofm_000')
         self.assertGreaterEqual(item.version, 1)
+
+    def test_items(self):
+        items = Catalog(session=session).items()
+        self.assertTrue((u'/scriptures/bofm', u'eng') in items)
+        self.assertTrue((u'/general-conference/2014/10', u'eng') in items)
+        self.assertTrue((u'/general-conference/2014/10', u'spa') in items)
 
     def test_package_html(self):
         with Catalog(session=session).item(uri='/scriptures/bofm', lang='eng').package() as package:
@@ -71,6 +77,27 @@ class Test(unittest.TestCase):
                     subitem_id=subitem_id,
                     media_url='http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?videoId=1288200371001',
                     container_type=1)
+            ]
+
+            self.assertEqual(expected, actual)
+
+    def test_package_related_content_items(self):
+        with Catalog(session=session).item(uri='/scriptures/ot', lang='eng').package() as package:
+            # Psalms 117
+            subitem_id = 596
+
+            actual = package.related_content_items(subitem_id)
+
+            expected = [
+                RelatedContentItem(
+                    id=11429,
+                    subitem_id=subitem_id,
+                    position=0,
+                    name='f_2a',
+                    label='2a',
+                    label_content='truth',
+                    origin_uri='/scriptures/ot/ps/117.2',
+                    content='<a href="/scriptures/dc-testament/dc/84.45" class="scriptureRef">D&amp;C 84:45</a>; <a href="/scriptures/dc-testament/dc/93.24" class="scriptureRef">93:24</a>.')
             ]
 
             self.assertEqual(expected, actual)

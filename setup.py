@@ -10,5 +10,6 @@ setup(
     install_requires=[
         'requests==2.4.3',
         'pysqlite==2.6.3',
+        'reprutils==1.0',
     ],
 )

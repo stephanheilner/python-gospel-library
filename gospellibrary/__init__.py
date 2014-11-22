@@ -7,6 +7,7 @@ import os
 from pysqlite2 import dbapi2 as sqlite3
 import shutil
 from contextlib import contextmanager
+from reprutils import GetattrRepr
 
 DEFAULT_BASE_URL = 'http://broadcast3.lds.org/crowdsource/mobile/gospelstudy/production'
 SCHEMA_VERSION = '2.0.2'
@@ -20,8 +21,7 @@ class Catalog:
         self.schema_version = SCHEMA_VERSION
         self.session = session if session else requests.session()
 
-    def __repr__(self):
-        return 'Catalog()'
+    __repr__ = GetattrRepr()
 
     def current_version(self):
         logger.info('Getting the current catalog version')
@@ -78,6 +78,46 @@ class Catalog:
 
         raise ValueError('failed to get the item')
 
+    def items(self):
+        catalog_version = self.current_version()
+
+        logger.info('Getting catalog {catalog_version}'.format(catalog_version=catalog_version))
+
+        catalog_zip_url = '{base_url}/{schema_version}/catalogs/{catalog_version}.zip'.format(
+            base_url=self.base_url,
+            schema_version=self.schema_version,
+            catalog_version=catalog_version)
+        r = self.session.get(catalog_zip_url)
+        if r.status_code == 200:
+            catalog_path = os.path.join(mkdtemp(), 'Catalog.sqlite')
+            try:
+                try:
+                    os.makedirs(os.path.dirname(catalog_path))
+                except OSError:
+                    pass
+
+                with ZipFile(StringIO(r.content), 'r') as catalog_zip_file:
+                    catalog_zip_file.extractall(os.path.dirname(catalog_path))
+
+                items = []
+
+                with sqlite3.connect(catalog_path) as db:
+                    c = db.cursor()
+                    try:
+                        c.execute('''
+                                SELECT uri, iso639_3, external_id, latest_version, title FROM item
+                                    INNER JOIN language ON item.language_id=language._id''')
+                        for uri, iso639_3, item_external_id, item_version, item_title in c.fetchall():
+                            items.append((uri, iso639_3))
+                    finally:
+                        c.close()
+
+                return items
+            finally:
+                shutil.rmtree(catalog_path, ignore_errors=True)
+
+        raise ValueError('failed to get the items')
+
 
 class Item:
     def __init__(self, base_url, session, item_external_id, version, title):
@@ -88,10 +128,7 @@ class Item:
         self.title = title
         self.session = session
 
-    def __repr__(self):
-        return 'Item(item_external_id="{item_external_id}", version="{version}")'.format(
-            item_external_id=self.item_external_id,
-            version=self.version)
+    __repr__ = GetattrRepr(item_external_id='item_external_id', version='version', title='title')
 
     @contextmanager
     def package(self):
@@ -143,7 +180,7 @@ class ItemPackage:
                     WHERE uri=?''', [uri])
             (html, start_index, end_index) = c.fetchone()
 
-            return html[start_index:end_index]
+            return html[start_index:end_index].decode('utf-8')
         finally:
             c.close()
 
@@ -177,11 +214,29 @@ class ItemPackage:
         finally:
             c.close()
 
+    def related_content_items(self, subitem_id):
+        c = self.db.cursor()
+        try:
+            return [RelatedContentItem(
+                id=row[0],
+                subitem_id=row[1],
+                position=row[2],
+                name=row[3],
+                label=row[4],
+                label_content=row[5],
+                origin_uri=row[6],
+                content=row[7]) for row in
+                    c.execute('''SELECT _id, subitem_id, position, name, label, label_content, origin_uri, content FROM related_content_item WHERE subitem_id=?''', [subitem_id])]
+        finally:
+            c.close()
+
 
 class Subitem:
     def __init__(self, id, uri):
         self.id = id
         self.uri = uri
+
+    __repr__ = GetattrRepr('id', uri='uri')
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
@@ -195,11 +250,6 @@ class Subitem:
 
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
-
-    def __repr__(self):
-        return 'Subitem(id="{id}", uri="{uri}")'.format(
-            id=self.id,
-            uri=self.uri)
 
 
 class RelatedAudioItem:
@@ -208,6 +258,8 @@ class RelatedAudioItem:
         self.subitem_id = subitem_id
         self.media_url = media_url
 
+    __repr__ = GetattrRepr('id', subitem_id='subitem_id', media_url='media_url')
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
@@ -220,12 +272,6 @@ class RelatedAudioItem:
 
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
-
-    def __repr__(self):
-        return 'RelatedAudioItem(id="{id}", subitem_id="{subitem_id}", media_url="{media_url}")'.format(
-            id=self.id,
-            subitem_id=self.subitem_id,
-            media_url=self.media_url)
 
 
 class RelatedVideoItem:
@@ -235,6 +281,8 @@ class RelatedVideoItem:
         self.media_url = media_url
         self.container_type = container_type
 
+    __repr__ = GetattrRepr('id', subitem_id='subitem_id', media_url='media_url', container_type='container_type')
+
     def __eq__(self, other):
         if isinstance(other, self.__class__):
             return self.__dict__ == other.__dict__
@@ -248,9 +296,35 @@ class RelatedVideoItem:
     def __hash__(self):
         return hash(tuple(sorted(self.__dict__.items())))
 
-    def __repr__(self):
-        return 'RelatedVideoItem(id="{id}", subitem_id="{subitem_id}", media_url="{media_url}", container_type="{container_type}")'.format(
-            id=self.id,
-            subitem_id=self.subitem_id,
-            media_url=self.media_url,
-            container_type=self.container_type)
+class RelatedContentItem:
+    def __init__(self, id, subitem_id, position, name, label, label_content, origin_uri, content):
+        self.id = id
+        self.subitem_id = subitem_id
+        self.position = position
+        self.name = name
+        self.label = label
+        self.label_content = label_content
+        self.origin_uri = origin_uri
+        self.content = content
+
+    __repr__ = GetattrRepr('id',
+                           subitem_id='subitem_id',
+                           position='position',
+                           name='name',
+                           label='label',
+                           label_content='label_content',
+                           origin_uri='origin_uri',
+                           content='content')
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            return self.__dict__ == other.__dict__
+        return NotImplemented
+
+    def __ne__(self, other):
+        if isinstance(other, self.__class__):
+            return not self.__eq__(other)
+        return NotImplemented
+
+    def __hash__(self):
+        return hash(tuple(sorted(self.__dict__.items())))
