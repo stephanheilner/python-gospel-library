@@ -10,7 +10,7 @@ from contextlib import contextmanager
 from reprutils import GetattrRepr
 
 DEFAULT_BASE_URL = 'http://broadcast3.lds.org/crowdsource/mobile/gospelstudy/production'
-SCHEMA_VERSION = '2.0.2'
+SCHEMA_VERSION = '2.0.3'
 
 logger = logging.getLogger('gospellibrary')
 

@@ -1,6 +1,6 @@
 # Python Gospel Library
 
-[![Build Status](https://travis-ci.org/LDSMobileApps/python-gospel-library.svg?branch=master)](https://travis-ci.org/LDSMobileApps/python-gospel-library)
+[![Build Status](https://travis-ci.org/CrossWaterBridge/python-gospel-library.svg?branch=master)](https://travis-ci.org/CrossWaterBridge/python-gospel-library)
 
 python-gospel-library parses Gospel Library content.
 
