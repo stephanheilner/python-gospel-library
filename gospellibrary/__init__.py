@@ -1,6 +1,5 @@
 import requests
 import logging
-from StringIO import StringIO
 from zipfile import ZipFile
 from tempfile import mkdtemp
 import os
@@ -8,6 +7,14 @@ import sqlite3
 import shutil
 from contextlib import contextmanager
 from reprutils import GetattrRepr
+
+try:
+    from StringIO import StringIO
+    Bytes = StringIO
+except ImportError:
+    from io import BytesIO
+    Bytes = BytesIO
+
 
 DEFAULT_BASE_URL = 'http://broadcast3.lds.org/crowdsource/mobile/gospelstudy/production'
 SCHEMA_VERSION = '2.0.3'
@@ -55,7 +62,7 @@ class Catalog:
                 except OSError:
                     pass
 
-                with ZipFile(StringIO(r.content), 'r') as catalog_zip_file:
+                with ZipFile(Bytes(r.content), 'r') as catalog_zip_file:
                     catalog_zip_file.extractall(os.path.dirname(catalog_path))
 
                 with sqlite3.connect(catalog_path) as db:
@@ -96,7 +103,7 @@ class Catalog:
                 except OSError:
                     pass
 
-                with ZipFile(StringIO(r.content), 'r') as catalog_zip_file:
+                with ZipFile(Bytes(r.content), 'r') as catalog_zip_file:
                     catalog_zip_file.extractall(os.path.dirname(catalog_path))
 
                 items = []
@@ -150,7 +157,7 @@ class Item:
             except OSError:
                 pass
 
-            with ZipFile(StringIO(r.content), 'r') as catalog_zip_file:
+            with ZipFile(Bytes(r.content), 'r') as catalog_zip_file:
                 catalog_zip_file.extractall(os.path.dirname(item_package_path))
 
             package = ItemPackage(path=item_package_path)
