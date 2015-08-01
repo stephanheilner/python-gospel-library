@@ -4,7 +4,7 @@ from StringIO import StringIO
 from zipfile import ZipFile
 from tempfile import mkdtemp
 import os
-from pysqlite2 import dbapi2 as sqlite3
+import sqlite3
 import shutil
 from contextlib import contextmanager
 from reprutils import GetattrRepr
