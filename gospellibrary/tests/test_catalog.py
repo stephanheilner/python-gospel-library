@@ -23,9 +23,9 @@ class Test(unittest.TestCase):
 
     def test_items(self):
         items = Catalog(session=session).items()
-        self.assertTrue((u'/scriptures/bofm', u'eng') in items)
-        self.assertTrue((u'/general-conference/2014/10', u'eng') in items)
-        self.assertTrue((u'/general-conference/2014/10', u'spa') in items)
+        self.assertTrue(('/scriptures/bofm', 'eng') in items)
+        self.assertTrue(('/general-conference/2014/10', 'eng') in items)
+        self.assertTrue(('/general-conference/2014/10', 'spa') in items)
 
     def test_package_html(self):
         with Catalog(session=session).item(uri='/scriptures/bofm', lang='eng').package() as package:
