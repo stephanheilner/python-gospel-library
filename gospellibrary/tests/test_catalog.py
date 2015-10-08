@@ -45,8 +45,20 @@ class Test(unittest.TestCase):
             expected = [
                 Subitem(
                     id=1,
-                    uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances')
+                    uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances',
+                    title='All Is Safely Gathered In: Family Finances')
             ]
+
+            self.assertEqual(expected, actual)
+
+    def test_package_subitem(self):
+        with Catalog(session=session).item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng').package() as package:
+            actual = package.subitem(uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances')
+
+            expected = Subitem(
+                id=1,
+                uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances',
+                title='All Is Safely Gathered In: Family Finances')
 
             self.assertEqual(expected, actual)
 

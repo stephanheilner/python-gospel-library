@@ -194,7 +194,16 @@ class ItemPackage:
     def subitems(self):
         c = self.db.cursor()
         try:
-            return [Subitem(id=row[0], uri=row[1]) for row in c.execute('''SELECT _id, uri FROM subitem ORDER BY position''')]
+            return [Subitem(id=row[0], uri=row[1], title=row[2]) for row in c.execute('''SELECT _id, uri, title FROM subitem ORDER BY position''')]
+        finally:
+            c.close()
+
+    def subitem(self, uri):
+        c = self.db.cursor()
+        try:
+            c.execute('''SELECT _id, uri, title FROM subitem WHERE uri=?''', [uri])
+            row = c.fetchone()
+            return Subitem(id=row[0], uri=row[1], title=row[2])
         finally:
             c.close()
 
@@ -239,11 +248,12 @@ class ItemPackage:
 
 
 class Subitem:
-    def __init__(self, id, uri):
+    def __init__(self, id, uri, title):
         self.id = id
         self.uri = uri
+        self.title = title
 
-    __repr__ = GetattrRepr('id', uri='uri')
+    __repr__ = GetattrRepr('id', uri='uri', title='title')
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
