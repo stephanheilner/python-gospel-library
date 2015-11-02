@@ -6,14 +6,16 @@ python-gospel-library parses Gospel Library content.
 
 Typical usage looks like this:
 
-    from gospellibrary import Catalog
+    from gospellibrary.catalogs import CatalogDB
+    from gospellibrary.item_packages import ItemPackage
     
-    catalog = Catalog()
+    catalog = CatalogDB()
     
     item = catalog.item(uri="/scriptures/bofm", lang="eng")
     
-    with item.package() as package:
-        package.html(uri="/scriptures/bofm/alma/18.27")
+    item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'])
+    
+    item_package.html(uri="/scriptures/bofm/alma/18.27")
 
 Which would give you:
 
