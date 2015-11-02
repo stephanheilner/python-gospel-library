@@ -8,7 +8,6 @@ setup(
     description='Python package that parses Gospel Library content.',
     long_description=open('README.md').read(),
     install_requires=[
-        'requests==2.4.3',
-        'reprutils==1.0',
+        'requests>=2.4.3'
     ],
 )
