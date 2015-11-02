@@ -1,8 +1,14 @@
 import requests
 import os
-from StringIO import StringIO
 from zipfile import ZipFile
 import sqlite3
+
+try:
+    from StringIO import StringIO
+    Bytes = StringIO
+except ImportError:
+    from io import BytesIO
+    Bytes = BytesIO
 
 DEFAULT_BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
 DEFAULT_SCHEMA_VERSION = '2.0.3'
@@ -37,7 +43,7 @@ class ItemPackage:
                 except OSError:
                     pass
 
-                with ZipFile(StringIO(r.content), 'r') as item_package_zip_file:
+                with ZipFile(Bytes(r.content), 'r') as item_package_zip_file:
                     item_package_zip_file.extractall(os.path.dirname(item_package_path))
 
         if os.path.isfile(item_package_path):

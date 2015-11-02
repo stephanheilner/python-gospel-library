@@ -1,9 +1,19 @@
 import requests
 import os
-from StringIO import StringIO
 from zipfile import ZipFile
 import sqlite3
-from urlparse import urljoin
+
+try:
+    from urllib.parse import urljoin
+except ImportError:
+    from urlparse import urljoin
+
+try:
+    from io import BytesIO
+    Bytes = BytesIO
+except ImportError:
+    from StringIO import StringIO
+    Bytes = StringIO
 
 DEFAULT_BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
 DEFAULT_SCHEMA_VERSION = '2.0.3'
@@ -46,7 +56,7 @@ class CatalogDB:
                 except OSError:
                     pass
 
-                with ZipFile(StringIO(r.content), 'r') as catalog_zip_file:
+                with ZipFile(Bytes(r.content), 'r') as catalog_zip_file:
                     catalog_zip_file.extractall(os.path.dirname(catalog_path))
 
         if os.path.isfile(catalog_path):
