@@ -87,7 +87,7 @@ class ItemPackage:
                                      INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
                                  WHERE uri=?''', [uri])
                 else:
-                    c.execute('''SELECT content, start_index, end_index FROM subitem_content_range
+                    c.execute('''SELECT content_html, start_index, end_index FROM subitem_content_range
                                      INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
                                      INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
                                  WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
