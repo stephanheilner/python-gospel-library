@@ -168,6 +168,10 @@ class ItemPackage:
             return None
 
         with sqlite3.connect(item_package_path) as db:
+            # Early v3 builds had a related_video_item table, but switched to exclusively inline video at some point.
+            if not self.table_exists(db, 'related_video_item'):
+                return []
+
             db.row_factory = self.dict_factory
             c = db.cursor()
             try:
@@ -175,6 +179,16 @@ class ItemPackage:
                 return c.fetchall()
             finally:
                 c.close()
+
+    def table_exists(self, db, table_name):
+        c = db.cursor()
+        try:
+            c.execute('''SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name=?''', [table_name])
+            return c.fetchone()[0] == 1
+        finally:
+            c.close()
+
+        return False
 
     def related_content_items(self, subitem_id):
         item_package_path = self.__fetch_item_package()
