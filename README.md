@@ -13,7 +13,7 @@ Typical usage looks like this:
     
     item = catalog.item(uri="/scriptures/bofm", lang="eng")
     
-    item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'])
+    item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'])
     
     item_package.html(uri="/scriptures/bofm/alma/18.27")
 

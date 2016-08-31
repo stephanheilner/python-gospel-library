@@ -14,12 +14,12 @@ class Test(unittest.TestCase):
     def test_item_by_id(self):
         item = CatalogDB(session=session).item(201392133)
         self.assertEqual(item['external_id'], '_scriptures_bofm_000')
-        self.assertGreaterEqual(item['latest_version'], 1)
+        self.assertGreaterEqual(item['version'], 1)
 
     def test_item_by_uri_and_lang(self):
         item = CatalogDB(session=session).item(uri='/scriptures/bofm', lang='eng')
         self.assertEqual(item['external_id'], '_scriptures_bofm_000')
-        self.assertGreaterEqual(item['latest_version'], 1)
+        self.assertGreaterEqual(item['version'], 1)
 
     def test_items(self):
         items = CatalogDB(session=session).items()
