@@ -82,15 +82,26 @@ class ItemPackage:
         with sqlite3.connect(item_package_path) as db:
             c = db.cursor()
             try:
-                if uri:
-                    c.execute('''SELECT content, start_index, end_index FROM subitem_content_range
-                                     INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
-                                 WHERE uri=?''', [uri])
+                if self.schema_version == '2.0.3':
+                    if uri:
+                        c.execute('''SELECT content, start_index, end_index FROM subitem_content_range
+                                         INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
+                                     WHERE uri=?''', [uri])
+                    else:
+                        c.execute('''SELECT content_html, start_index, end_index FROM subitem_content_range
+                                         INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
+                                         INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                     WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
                 else:
-                    c.execute('''SELECT content_html, start_index, end_index FROM subitem_content_range
-                                     INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
-                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
-                                 WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
+                    if uri:
+                        c.execute('''SELECT content, start_index, end_index FROM paragraph_metadata
+                                         INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
+                                     WHERE uri=?''', [uri])
+                    else:
+                        c.execute('''SELECT content_html, start_index, end_index FROM paragraph_metadata
+                                         INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
+                                         INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                     WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
                 (html, start_index, end_index) = c.fetchone()
 
                 return html[start_index:end_index].decode('utf-8')
