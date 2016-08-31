@@ -82,15 +82,16 @@ class ItemPackage:
         with sqlite3.connect(item_package_path) as db:
             c = db.cursor()
             try:
+                table_name = "subitem_content_range" if self.schema_version == '2.0.3' else "paragraph_metadata"
                 if uri:
-                    c.execute('''SELECT content, start_index, end_index FROM subitem_content_range
-                                     INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
-                                 WHERE uri=?''', [uri])
+                    c.execute('''SELECT content, start_index, end_index FROM {table_name}
+                                     INNER JOIN subitem_content ON {table_name}.subitem_id=subitem_content.subitem_id
+                                 WHERE uri=?'''.format(table_name=table_name), [uri])
                 else:
-                    c.execute('''SELECT content_html, start_index, end_index FROM subitem_content_range
-                                     INNER JOIN subitem_content ON subitem_content_range.subitem_id=subitem_content.subitem_id
+                    c.execute('''SELECT content_html, start_index, end_index FROM {table_name}
+                                     INNER JOIN subitem_content ON {table_name}.subitem_id=subitem_content.subitem_id
                                      INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
-                                 WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
+                                 WHERE uri=? AND paragraph_id=?'''.format(table_name=table_name), [subitem_uri, paragraph_id])
                 (html, start_index, end_index) = c.fetchone()
 
                 return html[start_index:end_index].decode('utf-8')

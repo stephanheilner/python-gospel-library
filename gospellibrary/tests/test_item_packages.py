@@ -12,7 +12,7 @@ session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'
 class Test(unittest.TestCase):
     def test_html(self):
         item = CatalogDB(session=session).item(uri='/scriptures/bofm', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
         p = bs4.BeautifulSoup(item_package.html(uri='/scriptures/bofm/1-ne/11.17')).p
         del p['pid']
         del p['hash']
@@ -24,7 +24,7 @@ class Test(unittest.TestCase):
 
     def test_subitems(self):
         item = CatalogDB(session=session).item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
         subitems = item_package.subitems()
 
         self.assertEqual(len(subitems), 1)
@@ -34,7 +34,7 @@ class Test(unittest.TestCase):
 
     def test_subitem(self):
         item = CatalogDB(session=session).item(uri='/manual/all-is-safely-gathered-in-family-finances', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
 
         subitem = item_package.subitem(uri='/manual/all-is-safely-gathered-in-family-finances/all-is-safely-gathered-in-family-finances')
 
@@ -44,7 +44,7 @@ class Test(unittest.TestCase):
 
     def test_related_audio_items(self):
         item = CatalogDB(session=session).item(uri='/manual/new-testament-stories', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
 
         subitem_id = 38
 
@@ -57,7 +57,7 @@ class Test(unittest.TestCase):
 
     def test_related_video_items(self):
         item = CatalogDB(session=session).item(uri='/manual/new-testament-stories', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
 
         subitem_id = 38
 
@@ -71,7 +71,7 @@ class Test(unittest.TestCase):
 
     def test_package_related_content_items(self):
         item = CatalogDB(session=session).item(uri='/scriptures/ot', lang='eng')
-        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['latest_version'], session=session)
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
 
         # Psalms 117
         subitem_id = 596
