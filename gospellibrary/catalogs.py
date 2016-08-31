@@ -70,6 +70,8 @@ class CatalogDB:
             name = column[0] if column[0] != '_id' else 'id'
             value = row[i]
             if name not in obj:
+                if name in ['version', 'latest_version'] and value is not None:
+                    obj['version'] = value
                 if name in ['cover_renditions', 'item_cover_renditions'] and value is not None:
                     base_url = '{base_url}/{schema_version}/'.format(base_url=self.base_url, schema_version=self.schema_version)
 
