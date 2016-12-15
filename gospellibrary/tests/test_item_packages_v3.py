@@ -8,7 +8,7 @@ from cachecontrol.caches import FileCache
 
 session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'))
 
-BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/beta/'
+BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
 
 
 class Test(unittest.TestCase):

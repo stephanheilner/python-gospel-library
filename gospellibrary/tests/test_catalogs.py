@@ -1,3 +1,6 @@
+# -*- coding: utf-8 -*-
+
+from __future__ import unicode_literals
 import unittest
 from gospellibrary.catalogs import current_catalog_version, CatalogDB
 import requests
@@ -10,6 +13,12 @@ session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'
 class Test(unittest.TestCase):
     def test_current_catalog_version(self):
         self.assertGreaterEqual(current_catalog_version(session=session), 1)
+
+    def test_language_names(self):
+        self.assertEqual(CatalogDB(session=session).language_name(language_id=1, localization_language_id=1), 'English')
+        self.assertEqual(CatalogDB(session=session).language_name(language_id=3, localization_language_id=1), 'Spanish')
+        self.assertEqual(CatalogDB(session=session).language_name(language_id=1, localization_language_id=3), 'Inglés')
+        self.assertEqual(CatalogDB(session=session).language_name(language_id=3, localization_language_id=3), 'Español')
 
     def test_item_by_id(self):
         item = CatalogDB(session=session).item(201392133)

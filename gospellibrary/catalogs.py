@@ -104,6 +104,21 @@ class CatalogDB:
             finally:
                 c.close()
 
+    def language_name(self, language_id, localization_language_id):
+        catalog_path = self.__fetch_catalog()
+        if not catalog_path:
+            return None
+
+        with sqlite3.connect(catalog_path) as db:
+            db.row_factory = self.dict_factory
+            c = db.cursor()
+            try:
+                c.execute('''SELECT name FROM language_name WHERE language_id=? AND localization_language_id=?''', [language_id, localization_language_id])
+                row = c.fetchone()
+                return row['name'] if row else None
+            finally:
+                c.close()
+
     def item_categories(self):
         catalog_path = self.__fetch_catalog()
         if not catalog_path:
