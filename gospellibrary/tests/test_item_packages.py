@@ -51,7 +51,7 @@ class Test(unittest.TestCase):
         related_audio_items = item_package.related_audio_items(subitem_id)
 
         self.assertEqual(len(related_audio_items), 1)
-        self.assertEqual(related_audio_items[0]['id'], 37)
+        self.assertEqual(related_audio_items[0]['id'], 34)
         self.assertEqual(related_audio_items[0]['subitem_id'], subitem_id)
         self.assertEqual(related_audio_items[0]['media_url'], 'http://media2.ldscdn.org/assets/scripture-and-lesson-support/new-testament-stories/2010-11-370-chapter-36-jesus-tells-three-parables-complete-256k-eng.mp3')
 
@@ -64,7 +64,7 @@ class Test(unittest.TestCase):
         related_video_items = [related_video_item for related_video_item in item_package.related_video_items(subitem_id) if related_video_item['container_type'] == 1]
 
         self.assertEqual(len(related_video_items), 1)
-        self.assertEqual(related_video_items[0]['id'], 469)
+        self.assertEqual(related_video_items[0]['id'], 430)
         self.assertEqual(related_video_items[0]['subitem_id'], subitem_id)
         self.assertEqual(related_video_items[0]['media_url'], 'http://c.brightcove.com/services/mobile/streaming/index/master.m3u8?videoId=1288200371001')
         self.assertEqual(related_video_items[0]['container_type'], 1)
