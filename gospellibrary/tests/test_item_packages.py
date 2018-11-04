@@ -10,7 +10,7 @@ session = CacheControl(requests.session(), cache=FileCache('.gospellibrarycache'
 
 
 class Test(unittest.TestCase):
-    def test_html(self):
+    def test_para_html(self):
         item = CatalogDB(session=session).item(uri='/scriptures/bofm', lang='eng')
         item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
         p = bs4.BeautifulSoup(item_package.html(subitem_uri='/scriptures/bofm/1-ne/11', paragraph_id='p17'), 'lxml').p
@@ -20,6 +20,14 @@ class Test(unittest.TestCase):
         expected = '<p class="verse" id="p17"><span class="verse-number">17 </span>And I said unto him: I know that he loveth his children; nevertheless, I do not know the meaning of all things.</p>'
 
         self.assertEqual(actual, expected)
+
+    def test_subitem_html(self):
+        item = CatalogDB(session=session).item(uri='/scriptures/ot', lang='eng')
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
+        doc = bs4.BeautifulSoup(item_package.html(subitem_uri='/scriptures/ot/ps/117'), 'lxml')
+
+        self.assertEqual('<p class="title-number" data-aid="128444354" id="title_number1">Psalm 117</p>', str(doc.find(id='title_number1')))
+        self.assertEqual('<p class="verse" data-aid="128444356" id="p1"><span class="verse-number">1 </span>O praise the <span class="deity-name"><span class="small-caps">Lord</span></span>, all ye nations: praise him, all ye people.</p>', str(doc.find(id='p1')))
 
     def test_subitems(self):
         item = CatalogDB(session=session).item(uri='/manual/family-finances', lang='eng')

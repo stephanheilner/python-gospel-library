@@ -74,7 +74,7 @@ class ItemPackage:
             finally:
                 c.close()
 
-    def html(self, uri=None, subitem_uri=None, paragraph_id=None):
+    def html(self, subitem_uri=None, paragraph_id=None):
         item_package_path = self.__fetch_item_package()
         if not item_package_path:
             return None
@@ -82,13 +82,21 @@ class ItemPackage:
         with sqlite3.connect(item_package_path) as db:
             c = db.cursor()
             try:
-                c.execute('''SELECT content_html, start_index, end_index FROM paragraph_metadata
-                                 INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
-                                 INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
-                             WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
-                (html, start_index, end_index) = c.fetchone()
+                if paragraph_id:
+                    c.execute('''SELECT content_html, start_index, end_index FROM paragraph_metadata
+                                     INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
+                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                 WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
+                    (html, start_index, end_index) = c.fetchone()
 
-                return html[start_index:end_index].decode('utf-8')
+                    return html[start_index:end_index].decode('utf-8')
+                else:
+                    c.execute('''SELECT content_html FROM subitem_content
+                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                 WHERE uri=?''', [subitem_uri])
+                    (html,) = c.fetchone()
+
+                    return str(html)
             finally:
                 c.close()
 
