@@ -13,7 +13,7 @@ class Test(unittest.TestCase):
     def test_html(self):
         item = CatalogDB(session=session).item(uri='/scriptures/bofm', lang='eng')
         item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
-        p = bs4.BeautifulSoup(item_package.html(uri='/scriptures/bofm/1-ne/11.17')).p
+        p = bs4.BeautifulSoup(item_package.html(uri='/scriptures/bofm/1-ne/11.17'), 'lxml').p
         del p['pid']
         del p['hash']
         actual = str(p)
