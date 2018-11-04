@@ -8,17 +8,17 @@ Typical usage looks like this:
 
     from gospellibrary.catalogs import CatalogDB
     from gospellibrary.item_packages import ItemPackage
-    
+
     catalog = CatalogDB()
-    
-    item = catalog.item(uri="/scriptures/bofm", lang="eng")
-    
+
+    item = catalog.item(uri='/scriptures/bofm', lang='eng')
+
     item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'])
     
-    item_package.html(uri="/scriptures/bofm/alma/18.27")
+    item_package.html(subitem_uri='/scriptures/bofm/alma/18', paragraph_id='p27')
 
 Which would give you:
 
-    <p class="verse" uri="/scriptures/bofm/alma/18.27" pid="fx0O72LQTEy0qOQn1Egaaw" hash="fFzuKQ">
-        <span class="verseNumber">27</span>And he said, Yea.
+    <p class="verse" data-aid="128350878" id="p27">
+        <span class="verse-number">27 </span>And he said, Yea.
     </p>

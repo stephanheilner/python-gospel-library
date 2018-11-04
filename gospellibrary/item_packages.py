@@ -11,7 +11,7 @@ except ImportError:
     Bytes = BytesIO
 
 DEFAULT_BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
-DEFAULT_SCHEMA_VERSION = '2.0.3'
+DEFAULT_SCHEMA_VERSION = 'v3'
 DEFAULT_CACHE_PATH = '/tmp/python-gospel-library'
 
 
@@ -82,16 +82,10 @@ class ItemPackage:
         with sqlite3.connect(item_package_path) as db:
             c = db.cursor()
             try:
-                table_name = "subitem_content_range" if self.schema_version == '2.0.3' else "paragraph_metadata"
-                if uri:
-                    c.execute('''SELECT content, start_index, end_index FROM {table_name}
-                                     INNER JOIN subitem_content ON {table_name}.subitem_id=subitem_content.subitem_id
-                                 WHERE uri=?'''.format(table_name=table_name), [uri])
-                else:
-                    c.execute('''SELECT content_html, start_index, end_index FROM {table_name}
-                                     INNER JOIN subitem_content ON {table_name}.subitem_id=subitem_content.subitem_id
-                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
-                                 WHERE uri=? AND paragraph_id=?'''.format(table_name=table_name), [subitem_uri, paragraph_id])
+                c.execute('''SELECT content_html, start_index, end_index FROM paragraph_metadata
+                                 INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
+                                 INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                             WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
                 (html, start_index, end_index) = c.fetchone()
 
                 return html[start_index:end_index].decode('utf-8')
@@ -134,15 +128,9 @@ class ItemPackage:
         with sqlite3.connect(item_package_path) as db:
             c = db.cursor()
             try:
-                # In 2.0.3 the column was called 'content'; early v3 builds use the same,
-                # but switched to 'content_html' at some point.
-                c.execute('''SELECT * FROM subitem_content WHERE subitem_id=? LIMIT 1''', [subitem_id])
+                c.execute('''SELECT content_html FROM subitem_content WHERE subitem_id=? LIMIT 1''', [subitem_id])
                 row = c.fetchone()
-                for i, column in enumerate(c.description):
-                    name = column[0]
-                    if name in ['content_html', 'content']:
-                        return row[i]
-                return None
+                return row[0]
             finally:
                 c.close()
 
@@ -159,24 +147,6 @@ class ItemPackage:
             c = db.cursor()
             try:
                 c.execute('''SELECT * FROM related_audio_item WHERE subitem_id=?''', [subitem_id])
-                return c.fetchall()
-            finally:
-                c.close()
-
-    def related_video_items(self, subitem_id):
-        item_package_path = self.__fetch_item_package()
-        if not item_package_path:
-            return None
-
-        with sqlite3.connect(item_package_path) as db:
-            # Early v3 builds had a related_video_item table, but switched to exclusively inline video at some point.
-            if not self.table_exists(db, 'related_video_item'):
-                return []
-
-            db.row_factory = self.dict_factory
-            c = db.cursor()
-            try:
-                c.execute('''SELECT * FROM related_video_item WHERE subitem_id=?''', [subitem_id])
                 return c.fetchall()
             finally:
                 c.close()

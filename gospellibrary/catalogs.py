@@ -9,14 +9,14 @@ except ImportError:
     from urlparse import urljoin
 
 try:
-    from io import BytesIO
-    Bytes = BytesIO
-except ImportError:
     from StringIO import StringIO
     Bytes = StringIO
+except ImportError:
+    from io import BytesIO
+    Bytes = BytesIO
 
 DEFAULT_BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
-DEFAULT_SCHEMA_VERSION = '2.0.3'
+DEFAULT_SCHEMA_VERSION = 'v3'
 DEFAULT_CACHE_PATH = '/tmp/python-gospel-library'
 
 
