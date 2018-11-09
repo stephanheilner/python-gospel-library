@@ -159,6 +159,20 @@ class ItemPackage:
             finally:
                 c.close()
 
+    def related_video_items(self, subitem_id):
+        item_package_path = self.__fetch_item_package()
+        if not item_package_path:
+            return None
+
+        with sqlite3.connect(item_package_path) as db:
+            db.row_factory = self.dict_factory
+            c = db.cursor()
+            try:
+                c.execute('''SELECT * FROM related_video_item WHERE subitem_id=?''', [subitem_id])
+                return c.fetchall()
+            finally:
+                c.close()
+
     def table_exists(self, db, table_name):
         c = db.cursor()
         try:

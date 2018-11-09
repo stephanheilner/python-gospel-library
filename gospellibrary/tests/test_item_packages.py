@@ -63,6 +63,21 @@ class Test(unittest.TestCase):
         self.assertEqual(related_audio_items[0]['subitem_id'], subitem_id)
         self.assertEqual(related_audio_items[0]['media_url'], 'https://media2.ldscdn.org/assets/scripture-and-lesson-support/new-testament-stories/2010-11-370-chapter-36-jesus-tells-three-parables-complete-256k-eng.mp3')
 
+    def test_related_video_items(self):
+        item = CatalogDB(session=session).item(uri='/manual/new-testament-stories', lang='eng')
+        item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
+
+        subitem_id = 38
+
+        related_video_items = [related_video_item for related_video_item in item_package.related_video_items(subitem_id)]
+
+        self.assertEqual(len(related_video_items), 1)
+        self.assertEqual(related_video_items[0]['id'], 35)
+        self.assertEqual(related_video_items[0]['subitem_id'], subitem_id)
+        self.assertEqual(related_video_items[0]['video_id'], '760176381001')
+        self.assertEqual(related_video_items[0]['poster_url'], 'https://mediasrv.lds.org/media-services/CM/videoStill/760176381001')
+        self.assertEqual(related_video_items[0]['title'], 'Chapter 35: The Good Samaritan')
+
     def test_package_related_content_items(self):
         item = CatalogDB(session=session).item(uri='/scriptures/ot', lang='eng')
         item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'], session=session)
