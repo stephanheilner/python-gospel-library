@@ -69,7 +69,7 @@ class Test(unittest.TestCase):
 
         subitem_id = 38
 
-        related_video_items = [related_video_item for related_video_item in item_package.related_video_items(subitem_id)]
+        related_video_items = item_package.related_video_items(subitem_id)
 
         self.assertEqual(len(related_video_items), 1)
         self.assertEqual(related_video_items[0]['id'], 35)
