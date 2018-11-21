@@ -96,7 +96,7 @@ class ItemPackage:
                                  WHERE uri=?''', [subitem_uri])
                     (html,) = c.fetchone()
 
-                    return str(html)
+                    return html[:].decode('utf-8')
             finally:
                 c.close()
 
