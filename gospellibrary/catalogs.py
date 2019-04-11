@@ -1,6 +1,6 @@
 import requests
 import os
-from zipfile import ZipFile
+import lzma
 import sqlite3
 
 try:
@@ -16,11 +16,13 @@ except ImportError:
     Bytes = BytesIO
 
 DEFAULT_BASE_URL = 'https://edge.ldscdn.org/mobile/GospelStudy/production/'
-DEFAULT_SCHEMA_VERSION = 'v3'
+DEFAULT_SCHEMA_VERSION = 'v4'
 DEFAULT_CACHE_PATH = '/tmp/python-gospel-library'
+DEFAULT_ISO639_3_CODE = 'eng'
 
-
-def current_catalog_version(schema_version=None, base_url=None, session=None):
+def current_catalog_version(iso639_3_code=None, schema_version=None, base_url=None, session=None):
+    if not iso639_3_code:
+        iso639_3_code = DEFAULT_ISO639_3_CODE
     if not schema_version:
         schema_version = DEFAULT_SCHEMA_VERSION
     if not base_url:
@@ -28,15 +30,16 @@ def current_catalog_version(schema_version=None, base_url=None, session=None):
     if not session:
         session = requests.Session()
 
-    index_url = '{base_url}/{schema_version}/index.json'.format(base_url=base_url, schema_version=schema_version)
+    index_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/index.json'.format(base_url=base_url, schema_version=schema_version)
     r = session.get(index_url)
     if r.status_code == 200:
         return r.json().get('catalogVersion', None)
 
 
 class CatalogDB:
-    def __init__(self, catalog_version=None, schema_version=None, base_url=None, session=None, cache_path=None):
-        self.catalog_version = catalog_version if catalog_version else current_catalog_version(schema_version=schema_version, base_url=base_url, session=session)
+    def __init__(self, iso639_3_code=None, catalog_version=None, schema_version=None, base_url=None, session=None, cache_path=None):
+        self.iso639_3_code = iso639_3_code if iso639_3_code else DEFAULT_ISO639_3_CODE
+        self.catalog_version = catalog_version if catalog_version else current_catalog_version(iso639_3_code=iso639_3_code, schema_version=schema_version, base_url=base_url, session=session)
         self.schema_version = schema_version if schema_version else DEFAULT_SCHEMA_VERSION
         self.base_url = base_url if base_url else DEFAULT_BASE_URL
         self.session = session if session else requests.Session()
@@ -46,18 +49,19 @@ class CatalogDB:
         return self.__fetch_catalog() is not None
 
     def __fetch_catalog(self):
-        catalog_path = os.path.join(self.cache_path, '{schema_version}/catalogs/{catalog_version}'.format(schema_version=self.schema_version, catalog_version=self.catalog_version), 'Catalog.sqlite')
+        catalog_path = os.path.join(self.cache_path, '{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}'.format(schema_version=self.schema_version, catalog_version=self.catalog_version), 'Catalog.sqlite')
         if not os.path.isfile(catalog_path):
-            catalog_zip_url = '{base_url}/{schema_version}/catalogs/{catalog_version}.zip'.format(base_url=self.base_url, schema_version=self.schema_version, catalog_version=self.catalog_version)
-            r = self.session.get(catalog_zip_url)
+            catalog_xz_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}.xz'.format(base_url=self.base_url, schema_version=self.schema_version, catalog_version=self.catalog_version)
+            r = self.session.get(catalog_xz_url)
             if r.status_code == 200:
                 try:
                     os.makedirs(os.path.dirname(catalog_path))
                 except OSError:
                     pass
 
-                with ZipFile(Bytes(r.content), 'r') as catalog_zip_file:
-                    catalog_zip_file.extractall(os.path.dirname(catalog_path))
+                with lzma.open(r.content) as catalog_xz_file:
+                    #TODO: save decompressed file to os.path.dirname(catalog_path)
+                    # catalog_xz_file.extractall(os.path.dirname(catalog_path))
 
         if os.path.isfile(catalog_path):
             return catalog_path
