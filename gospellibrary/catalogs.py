@@ -30,7 +30,7 @@ def current_catalog_version(iso639_3_code=None, schema_version=None, base_url=No
     if not session:
         session = requests.Session()
 
-    index_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/index.json'.format(base_url=base_url, schema_version=schema_version)
+    index_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/index.json'.format(base_url=base_url, schema_version=schema_version, iso639_3_code=iso639_3_code)
     r = session.get(index_url)
     if r.status_code == 200:
         return r.json().get('catalogVersion', None)
@@ -49,9 +49,9 @@ class CatalogDB:
         return self.__fetch_catalog() is not None
 
     def __fetch_catalog(self):
-        catalog_path = os.path.join(self.cache_path, '{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}'.format(schema_version=self.schema_version, catalog_version=self.catalog_version), 'Catalog.sqlite')
+        catalog_path = os.path.join(self.cache_path, '{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}'.format(schema_version=self.schema_version, iso639_3_code=self.iso639_3_code, catalog_version=self.catalog_version), 'Catalog.sqlite')
         if not os.path.isfile(catalog_path):
-            catalog_xz_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}.xz'.format(base_url=self.base_url, schema_version=self.schema_version, catalog_version=self.catalog_version)
+            catalog_xz_url = '{base_url}/{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}.xz'.format(base_url=self.base_url, schema_version=self.schema_version, iso639_3_code=self.iso639_3_code, catalog_version=self.catalog_version)
             r = self.session.get(catalog_xz_url)
             if r.status_code == 200:
                 try:
