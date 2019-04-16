@@ -1,8 +1,12 @@
 import requests
 import os
-import lzma
 import sqlite3
 
+try:
+    import lzma
+except ImportError:
+    from backports import lzma
+    
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -59,9 +63,9 @@ class CatalogDB:
                 except OSError:
                     pass
 
-                with lzma.open(r.content) as catalog_xz_file:
-                    #TODO: save decompressed file to os.path.dirname(catalog_path)
-                    # catalog_xz_file.extractall(os.path.dirname(catalog_path))
+                with lzma.open(BytesIO(r.content)) as catalog_xz_file:
+                    with open(catalog_path, 'wb') as f:
+                        f.write(catalog_xz_file.read())
 
         if os.path.isfile(catalog_path):
             return catalog_path
