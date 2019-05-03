@@ -6,7 +6,7 @@ try:
     import lzma
 except ImportError:
     from backports import lzma
-    
+
 try:
     from urllib.parse import urljoin
 except ImportError:
@@ -107,7 +107,7 @@ class CatalogDB:
             db.row_factory = self.dict_factory
             c = db.cursor()
             try:
-                c.execute('''SELECT language.*, language_name.* FROM language LEFT OUTER JOIN (SELECT * FROM language_name WHERE localization_language_id=1) language_name ON language._id=language_name.language_id ORDER BY lds_language_code''')
+                c.execute('''SELECT language.*, language_name.* FROM language LEFT OUTER JOIN (SELECT * FROM language_name WHERE localization_language_id=1) language_name ON language.id=language_name.language_id ORDER BY lds_language_code''')
                 return c.fetchall()
             finally:
                 c.close()
@@ -195,11 +195,11 @@ class CatalogDB:
             c = db.cursor()
             try:
                 if section_ids is not None:
-                    c.execute('''SELECT item.*, library_item.* FROM library_item INNER JOIN item ON library_item.item_id=item._id WHERE library_section_id IN ({}) ORDER BY position'''.format(
+                    c.execute('''SELECT item.*, library_item.* FROM library_item INNER JOIN item ON library_item.item_id=item.id WHERE library_section_id IN ({}) ORDER BY position'''.format(
                         ','.join('?' * len(section_ids))
                     ), section_ids)
                 else:
-                    c.execute('''SELECT item.*, library_item.* FROM library_item INNER JOIN item ON library_item.item_id=item._id ORDER BY external_id''')
+                    c.execute('''SELECT item.*, library_item.* FROM library_item INNER JOIN item ON library_item.item_id=item.id ORDER BY external_id''')
                 return c.fetchall()
             finally:
                 c.close()
@@ -219,7 +219,7 @@ class CatalogDB:
                 if item_id:
                     c.execute('''SELECT * FROM item WHERE _id=?''', [item_id])
                 else:
-                    c.execute('''SELECT item.* FROM item INNER JOIN language ON item.language_id=language._id WHERE uri=? AND iso639_3=?''', [uri, lang])
+                    c.execute('''SELECT item.* FROM item INNER JOIN language ON item.language_id=language.id WHERE uri=? AND iso639_3=?''', [uri, lang])
                 return c.fetchone()
             finally:
                 c.close()

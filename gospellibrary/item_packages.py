@@ -85,14 +85,14 @@ class ItemPackage:
                 if paragraph_id:
                     c.execute('''SELECT content_html, start_index, end_index FROM paragraph_metadata
                                      INNER JOIN subitem_content ON paragraph_metadata.subitem_id=subitem_content.subitem_id
-                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem.id
                                  WHERE uri=? AND paragraph_id=?''', [subitem_uri, paragraph_id])
                     (html, start_index, end_index) = c.fetchone()
 
                     return html[start_index:end_index].decode('utf-8')
                 else:
                     c.execute('''SELECT content_html FROM subitem_content
-                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem._id
+                                     INNER JOIN subitem ON subitem_content.subitem_id=subitem.id
                                  WHERE uri=?''', [subitem_uri])
                     (html,) = c.fetchone()
 
