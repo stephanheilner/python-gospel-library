@@ -9,11 +9,11 @@ Typical usage looks like this:
     from gospellibrary.catalogs import CatalogDB
     from gospellibrary.item_packages import ItemPackage
 
-    catalog = CatalogDB()
+    catalog = CatalogDB(iso639_3_code='eng')
 
-    item = catalog.item(uri='/scriptures/bofm', lang='eng')
+    item = catalog.item(uri='/scriptures/bofm')
 
-    item_package = ItemPackage(item_external_id=item['external_id'], item_version=item['version'])
+    item_package = ItemPackage(item_id=item['id'], item_version=item['version'], iso639_3_code='eng')
     
     item_package.html(subitem_uri='/scriptures/bofm/alma/18', paragraph_id='p27')
 
