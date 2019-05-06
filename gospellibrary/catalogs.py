@@ -46,8 +46,6 @@ class CatalogDB:
         print "catalog_version: %s" % self.catalog_version
         print "schema_version: %s" % self.schema_version
         print "base_url: %s" % self.base_url
-        print "session: %s" % self.session
-        print "cache_path: %s" % self.cache_path
 
     def exists(self):
         return self.__fetch_catalog() is not None
@@ -56,6 +54,7 @@ class CatalogDB:
         catalog_path = os.path.join(self.cache_path, self.schema_version, 'languages', self.iso639_3_code, 'catalogs', str(self.catalog_version), 'Catalog.sqlite')
         if not os.path.isfile(catalog_path):
             catalog_xz_url = urljoin(self.base_url, '{schema_version}/languages/{iso639_3_code}/catalogs/{catalog_version}.xz'.format(schema_version=self.schema_version, iso639_3_code=self.iso639_3_code, catalog_version=self.catalog_version))
+            print "catalog_url: %s" % catalog_xz_url
             r = self.session.get(catalog_xz_url)
             if r.status_code == 200:
                 try:
