@@ -42,6 +42,13 @@ class CatalogDB:
         self.session = session
         self.cache_path = cache_path
 
+        print "iso639_3_code: %s" % self.iso639_3_code
+        print "catalog_version: %s" % self.catalog_version
+        print "schema_version: %s" % self.schema_version
+        print "base_url: %s" % self.base_url
+        print "session: %s" % self.session
+        print "cache_path: %s" % self.cache_path
+
     def exists(self):
         return self.__fetch_catalog() is not None
 
